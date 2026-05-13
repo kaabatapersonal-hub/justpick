@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, animate, useMotionValue } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../store/AppContext';
+import MoodIllustration from '../components/ui/MoodIllustration';
 
 const MOODS = [
   {
@@ -49,6 +50,8 @@ const MOODS = [
 const TIMER_DURATION = 1500;
 const RING_RADIUS = 32;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+// Pixels of the next card visible on the right edge
+const PEEK = 26;
 
 export default function OnboardingScreen({ isSwipeMode = false }) {
   const navigate = useNavigate();
@@ -56,45 +59,47 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timerProgress, setTimerProgress] = useState(0);
-  // 0 = idle, 1 = card scale-up, 2 = white flash
+  // 0 = idle  1 = card scale-up  2 = white flash
   const [exitPhase, setExitPhase] = useState(0);
   const [cardWidth, setCardWidth] = useState(
     () => Math.min(typeof window !== 'undefined' ? window.innerWidth : 430, 430)
   );
+  // Swipe hint fades after the first deliberate swipe
+  const [hasSwipedOnce, setHasSwipedOnce] = useState(false);
 
   const containerRef = useRef(null);
   const x = useMotionValue(0);
-  // Guard against double-select (button tap + timer firing simultaneously)
+  // Prevents double-select (button tap racing against timer)
   const isSelectingRef = useRef(false);
   const timerRafRef = useRef(null);
+  // Prevents setState calls after unmount
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
-  // Measure actual rendered width once mounted
+  // Measure actual rendered container width once on mount
   useEffect(() => {
-    if (containerRef.current) {
-      const w = containerRef.current.offsetWidth;
-      setCardWidth(w);
-      // Snap x to the correct position with the real width
-      x.set(-currentIndex * w);
-    }
+    if (!containerRef.current) return;
+    const w = containerRef.current.offsetWidth;
+    setCardWidth(w);
+    x.set(-currentIndex * (w - PEEK));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-select timer — restarts every time currentIndex changes
+  // Auto-select timer — restarts on every card change
   useEffect(() => {
     let raf;
     let cancelled = false;
-    setTimerProgress(0);
+    if (mountedRef.current) setTimerProgress(0);
     const start = Date.now();
 
     const tick = () => {
       if (cancelled) return;
       const elapsed = Date.now() - start;
       const progress = Math.min(elapsed / TIMER_DURATION, 1);
-      setTimerProgress(progress);
+      if (mountedRef.current) setTimerProgress(progress);
       if (progress < 1) {
         raf = requestAnimationFrame(tick);
         timerRafRef.current = raf;
       } else {
-        // Auto-select current mood when timer completes
         triggerSelect(MOODS[currentIndex]);
       }
     };
@@ -120,15 +125,19 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
 
   const cancelTimer = () => cancelAnimationFrame(timerRafRef.current);
 
+  // Effective card width leaves PEEK pixels for the next card to show through
+  const effectiveCardWidth = cardWidth - PEEK;
+
   const goTo = (newIndex) => {
     if (newIndex === currentIndex || newIndex < 0 || newIndex >= MOODS.length) return;
     cancelTimer();
+    setHasSwipedOnce(true);
     setCurrentIndex(newIndex);
-    animate(x, -newIndex * cardWidth, { type: 'spring', stiffness: 280, damping: 28 });
+    animate(x, -newIndex * effectiveCardWidth, { type: 'spring', stiffness: 280, damping: 28 });
   };
 
   const handleDragEnd = (_, { velocity, offset }) => {
-    const threshold = cardWidth * 0.22;
+    const threshold = effectiveCardWidth * 0.22;
     const didSwipeLeft = velocity.x < -250 || offset.x < -threshold;
     const didSwipeRight = velocity.x > 250 || offset.x > threshold;
 
@@ -137,8 +146,12 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
     } else if (didSwipeRight && currentIndex > 0) {
       goTo(currentIndex - 1);
     } else {
-      // Snap back to current card
-      animate(x, -currentIndex * cardWidth, { type: 'spring', stiffness: 280, damping: 28 });
+      // Not enough — snap back
+      animate(x, -currentIndex * effectiveCardWidth, {
+        type: 'spring',
+        stiffness: 280,
+        damping: 28,
+      });
     }
   };
 
@@ -146,16 +159,22 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
     if (isSelectingRef.current) return;
     isSelectingRef.current = true;
     cancelTimer();
-
     setMood(mood.id);
-    if (!isSwipeMode) setFirstTimeDone();
 
-    // Phase 1: card scales up
-    setExitPhase(1);
-    // Phase 2: white flash expands
-    setTimeout(() => setExitPhase(2), 180);
-    // Navigate after flash covers screen
-    setTimeout(() => navigate('/'), 640);
+    // Phase 1: scale the card up
+    if (mountedRef.current) setExitPhase(1);
+    // Phase 2: white flash expands from centre
+    setTimeout(() => {
+      if (mountedRef.current) setExitPhase(2);
+    }, 180);
+    // FIX: setFirstTimeDone() is called here — right before navigate —
+    // NOT at the top of this function. Calling it early flips isFirstTime=false
+    // in context, which makes App.jsx immediately unmount this screen via its
+    // route guard, cutting off the exit animation before it can play.
+    setTimeout(() => {
+      if (!isSwipeMode) setFirstTimeDone();
+      navigate('/');
+    }, 640);
   };
 
   const handleSkip = () => {
@@ -165,20 +184,18 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
   };
 
   return (
-    // Navy surround on desktop so it looks like a phone frame
+    // Navy background on desktop gives a phone-frame look
     <div className="fixed inset-0 bg-[#1E293B] flex items-center justify-center">
       <div
         ref={containerRef}
         className="relative w-full max-w-[430px] h-full overflow-hidden"
       >
-        {/* ── Top bar ──────────────────────────────────────── */}
+        {/* ── Top bar ─────────────────────────────────────── */}
         <div className="absolute top-0 left-0 right-0 z-20 flex items-start justify-between px-6 pt-12 pointer-events-none">
+          {/* Left side */}
           <div className="pointer-events-auto">
             {isSwipeMode ? (
-              <button
-                onClick={handleSkip}
-                className="text-white/70 text-sm font-medium"
-              >
+              <button onClick={handleSkip} className="text-white/70 text-sm font-medium">
                 ← Back
               </button>
             ) : (
@@ -189,23 +206,26 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
             )}
           </div>
 
-          {!isSwipeMode && (
-            <button
-              onClick={handleSkip}
-              className="text-white/60 text-sm pointer-events-auto mt-1"
-            >
-              Skip →
-            </button>
-          )}
+          {/* Right side: card counter + skip */}
+          <div className="flex flex-col items-end gap-1 pointer-events-auto">
+            <span className="text-white/60 text-xs font-medium tabular-nums">
+              {currentIndex + 1} / {MOODS.length}
+            </span>
+            {!isSwipeMode && (
+              <button onClick={handleSkip} className="text-white/60 text-sm mt-0.5">
+                Skip →
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* ── Swipeable card track ──────────────────────────── */}
+        {/* ── Swipeable card track ─────────────────────────── */}
         <motion.div
           className="absolute inset-0 flex items-stretch"
-          style={{ x, width: cardWidth * MOODS.length }}
+          style={{ x, width: MOODS.length * effectiveCardWidth }}
           drag="x"
           dragConstraints={{
-            left: -(MOODS.length - 1) * cardWidth,
+            left: -(MOODS.length - 1) * effectiveCardWidth,
             right: 0,
           }}
           dragElastic={0.06}
@@ -217,31 +237,28 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
               key={mood.id}
               aria-label={mood.label}
               style={{
-                width: cardWidth,
+                width: effectiveCardWidth,
                 background: `linear-gradient(135deg, ${mood.from} 0%, ${mood.to} 100%)`,
                 transform:
                   exitPhase >= 1 && i === currentIndex ? 'scale(1.05)' : 'scale(1)',
                 transition: 'transform 0.18s ease-out',
               }}
-              className="h-full flex-shrink-0 flex flex-col items-center justify-center"
+              className="h-full flex-shrink-0 flex flex-col items-center justify-center px-6"
             >
-              {/* Floating emoji */}
+              {/* SVG illustration (replaces plain emoji as main visual) */}
               <motion.div
-                className="text-9xl select-none"
-                animate={{ y: [0, -14, 0] }}
-                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
-                {mood.emoji}
+                <MoodIllustration mood={mood} />
               </motion.div>
 
-              <h2 className="text-4xl font-bold text-white mt-6">{mood.label}</h2>
-              <p className="text-white/80 text-lg mt-3 text-center px-10">
-                {mood.description}
-              </p>
+              <h2 className="text-4xl font-bold text-white mt-7">{mood.label}</h2>
+              <p className="text-white/80 text-lg mt-2 text-center">{mood.description}</p>
 
               {/* Select button + circular progress ring */}
-              <div className="mt-14 relative flex items-center justify-center">
-                {/* Ring only renders on the active card */}
+              <div className="mt-10 relative flex items-center justify-center">
+                {/* Ring renders only for the active card */}
                 {i === currentIndex && (
                   <svg
                     className="absolute pointer-events-none"
@@ -250,16 +267,16 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
                     style={{ transform: 'rotate(-90deg)' }}
                     aria-hidden="true"
                   >
-                    {/* Track */}
+                    {/* Background track */}
                     <circle
                       cx={45}
                       cy={45}
                       r={RING_RADIUS}
                       fill="none"
-                      stroke="rgba(255,255,255,0.25)"
+                      stroke="rgba(255,255,255,0.22)"
                       strokeWidth={3}
                     />
-                    {/* Progress arc */}
+                    {/* Progress fill */}
                     <circle
                       cx={45}
                       cy={45}
@@ -278,7 +295,7 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
                   className="bg-white text-[#FF8C42] font-bold px-8 py-4 rounded-full shadow-lg"
                   animate={{ scale: [1, 1.045, 1] }}
                   transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                  // Stop pointer events from propagating to the drag handler
+                  // Stop the pointer event from bubbling to the drag handler
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => triggerSelect(mood)}
                 >
@@ -289,18 +306,74 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
           ))}
         </motion.div>
 
+        {/* ── Swipe hint (fades after first swipe) ─────────── */}
+        <AnimatePresence>
+          {!hasSwipedOnce && (
+            <motion.div
+              key="swipe-hint"
+              className="absolute z-20 left-0 right-0 flex flex-col items-center gap-2 pointer-events-none"
+              style={{ bottom: 72 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.4 } }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
+              {/* Sliding hand icon */}
+              <motion.span
+                className="text-2xl"
+                initial={{ x: 0 }}
+                animate={{ x: [-24, 12, -24] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+              >
+                👆
+              </motion.span>
+
+              {/* Arrow + text row */}
+              <div className="flex items-center gap-2">
+                <motion.span
+                  className="text-white/70 text-lg"
+                  animate={{ x: [-5, 5, -5] }}
+                  transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  ←
+                </motion.span>
+                <span className="text-white/65 text-xs font-medium tracking-wide">
+                  Swipe to explore moods
+                </span>
+                <motion.span
+                  className="text-white/70 text-lg"
+                  animate={{ x: [5, -5, 5] }}
+                  transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  →
+                </motion.span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* ── Dot indicators ───────────────────────────────── */}
-        <div className="absolute bottom-10 left-0 right-0 z-20 flex items-center justify-center gap-2 pointer-events-none">
+        <div
+          className="absolute bottom-8 left-0 right-0 z-20 flex items-center justify-center gap-2.5 pointer-events-none"
+        >
           {MOODS.map((_, i) => (
             <motion.button
               key={i}
               aria-label={`Go to ${MOODS[i].label}`}
-              className="h-2 rounded-full bg-white pointer-events-auto"
+              className="h-2.5 rounded-full bg-white pointer-events-auto"
               animate={{
-                width: i === currentIndex ? 24 : 8,
-                opacity: i === currentIndex ? 1 : 0.4,
+                width: i === currentIndex ? 28 : 9,
+                opacity: i === currentIndex ? 1 : 0.5,
+                scale: i === currentIndex ? 1 : [1, 1.25, 1],
               }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              transition={
+                i === currentIndex
+                  ? { type: 'spring', stiffness: 400, damping: 30 }
+                  : {
+                      width: { type: 'spring', stiffness: 400, damping: 30 },
+                      scale: { duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: i * 0.18 },
+                    }
+              }
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => goTo(i)}
             />
@@ -313,8 +386,8 @@ export default function OnboardingScreen({ isSwipeMode = false }) {
             <motion.div
               className="absolute inset-0 z-50 bg-white"
               initial={{ opacity: 0, scale: 0.15, borderRadius: '50%' }}
-              animate={{ opacity: 1, scale: 2, borderRadius: '0%' }}
-              transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+              animate={{ opacity: 1, scale: 2.5, borderRadius: '0%' }}
+              transition={{ duration: 0.44, ease: [0.22, 1, 0.36, 1] }}
             />
           )}
         </AnimatePresence>
