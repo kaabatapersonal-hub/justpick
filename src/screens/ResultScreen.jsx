@@ -5,6 +5,7 @@ import { useApp } from '../store/AppContext';
 import { getPickResult, getChaosPick } from '../utils/pickEngine';
 import { generateShareText, generateShareCardData } from '../utils/shareUtils';
 import { saveFeedbackToFirestore } from '../firebase/helpers';
+import { hapticTap, hapticSuccess } from '../utils/haptics';
 
 const SPARKLE_DIRS = [
   { x: 0, y: -58 },
@@ -185,14 +186,17 @@ export default function ResultScreen() {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleAccept = () => {
+    hapticSuccess();
     setIsAccepting(true);
     setTimeout(() => {
       resetShuffles();
+      window.scrollTo(0, 0);
       navigate('/');
     }, 480);
   };
 
   const handleShuffle = () => {
+    hapticTap();
     if (shufflesLeft <= 0) {
       setShakeBtn(true);
       setTimeout(() => setShakeBtn(false), 600);

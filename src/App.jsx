@@ -1,13 +1,16 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useApp } from './store/AppContext';
 import { useAuth } from './hooks/useAuth';
 import AppShell from './components/layout/AppShell';
-import HomeScreen from './screens/HomeScreen';
-import OnboardingScreen from './screens/OnboardingScreen';
-import ResultScreen from './screens/ResultScreen';
-import StatsScreen from './screens/StatsScreen';
-import GroupScreen from './screens/GroupScreen';
-import HistoryScreen from './screens/HistoryScreen';
+import LoadingSpinner from './components/ui/LoadingSpinner';
+
+const HomeScreen     = lazy(() => import('./screens/HomeScreen'));
+const OnboardingScreen = lazy(() => import('./screens/OnboardingScreen'));
+const ResultScreen   = lazy(() => import('./screens/ResultScreen'));
+const StatsScreen    = lazy(() => import('./screens/StatsScreen'));
+const GroupScreen    = lazy(() => import('./screens/GroupScreen'));
+const HistoryScreen  = lazy(() => import('./screens/HistoryScreen'));
 
 function AppRoutes() {
   useAuth();
@@ -70,5 +73,9 @@ function AppRoutes() {
 }
 
 export default function App() {
-  return <AppRoutes />;
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <AppRoutes />
+    </Suspense>
+  );
 }

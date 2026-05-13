@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../store/AppContext';
 
@@ -6,29 +7,32 @@ export default function AppShell({ children }) {
   const location = useLocation();
   const { isDarkMode, toggleDarkMode, setCategory } = useApp();
 
+  // Scroll to top whenever the route changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   const handleCategoryNav = (category) => {
     setCategory(category);
     navigate('/', { state: { quickPick: true } });
   };
 
   const navTabs = [
-    { label: 'Food', emoji: '🍔', action: () => handleCategoryNav('food') },
+    { label: 'Food',     emoji: '🍔', action: () => handleCategoryNav('food') },
     { label: 'Activity', emoji: '🎯', action: () => handleCategoryNav('activity') },
-    { label: 'Group', emoji: '🎲', action: () => navigate('/group') },
+    { label: 'Group',    emoji: '🎲', action: () => navigate('/group') },
   ];
 
-  const activeTab = (() => {
-    if (location.pathname === '/group') return 'Group';
-    const { state } = location;
-    if (state?.quickPick) return null;
-    return null;
-  })();
-
   return (
-    <div className="flex flex-col h-screen bg-[#FFF9F0] dark:bg-[#0F172A] text-[#1E293B] dark:text-[#F8FAFC]">
+    <div className="flex flex-col h-full min-h-screen bg-[#FFF9F0] dark:bg-[#0F172A] text-[#1E293B] dark:text-[#F8FAFC]">
       {/* Top Bar */}
       <header className="flex items-center justify-between px-4 py-3 bg-[#FFF9F0] dark:bg-[#0F172A] border-b border-gray-200 dark:border-gray-700 shrink-0">
-        <span className="text-xl font-bold text-[#FF8C42]">JustPick</span>
+        <button
+          onClick={() => navigate('/')}
+          className="text-xl font-bold text-[#FF8C42]"
+        >
+          JustPick
+        </button>
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/stats')}
@@ -53,18 +57,17 @@ export default function AppShell({ children }) {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="shrink-0 flex items-center justify-around bg-[#FFFFFF] dark:bg-[#1E293B] border-t border-gray-200 dark:border-gray-700 px-4 py-2 safe-area-bottom">
+      <nav className="shrink-0 flex items-center justify-around bg-white dark:bg-[#1E293B] border-t border-gray-200 dark:border-gray-700 px-4 py-2 safe-area-bottom">
         {navTabs.map((tab) => {
-          const isActive =
-            tab.label === 'Group'
-              ? location.pathname === '/group'
-              : location.pathname === '/' && location.state?.activeTab === tab.label;
+          const isActive = tab.label === 'Group'
+            ? location.pathname === '/group'
+            : false;
 
           return (
             <button
               key={tab.label}
               onClick={tab.action}
-              className={`flex flex-col items-center gap-1 px-6 py-2 rounded-2xl transition-colors ${
+              className={`flex flex-col items-center gap-1 px-6 py-2 rounded-2xl transition-colors min-h-[44px] ${
                 isActive
                   ? 'text-[#FF8C42] bg-orange-50 dark:bg-orange-900/20'
                   : 'text-gray-500 dark:text-gray-400 hover:text-[#FF8C42]'

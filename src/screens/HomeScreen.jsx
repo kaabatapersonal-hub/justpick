@@ -5,6 +5,7 @@ import { useApp } from '../store/AppContext';
 import { getPickResult, getQuickPick, getChaosPick, getDailyChallenge } from '../utils/pickEngine';
 import { calculateStreak, updateStats as computeStats, formatStreakMessage } from '../utils/statsUtils';
 import { savePickToFirestore } from '../firebase/helpers';
+import { hapticTap, hapticSuccess } from '../utils/haptics';
 
 const MOODS = [
   { id: 'hungry', label: 'Hungry', emoji: '🍽️' },
@@ -105,6 +106,7 @@ export default function HomeScreen() {
 
   const triggerPick = async (mode = 'normal') => {
     if (isLoading) return;
+    hapticTap();
     setIsLoading(true);
 
     const category = selectedCategory || 'food';
@@ -150,6 +152,8 @@ export default function HomeScreen() {
 
     setTimeout(() => {
       setIsLoading(false);
+      hapticSuccess();
+      window.scrollTo(0, 0);
       navigate('/result');
     }, 600);
   };

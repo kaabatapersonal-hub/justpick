@@ -23,14 +23,33 @@
   transition-duration: 300ms;
 }
 
-body {
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  background-color: var(--color-surface);
-  color: var(--color-navy);
-  -webkit-font-smoothing: antialiased;
+html, body {
+  height: 100%;
 }
 
-.dark body {
-  background-color: var(--color-dark-bg);
-  color: var(--color-dark-text);
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* Desktop: dark navy surround gives phone-frame look */
+  background-color: #1E293B;
+}
+
+#root {
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100%;
+  background-color: #FFF9F0;
+  position: relative;
+}
+
+.dark #root {
+  background-color: #0F172A;
+}
+
+/* Scrollbar hidden for horizontal scroll containers */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

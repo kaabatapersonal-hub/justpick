@@ -502,7 +502,7 @@ function RevealView({ step, data, tallyVisible, category, onPlayAgain, onDone, o
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-[#0A0F1E] flex flex-col items-center justify-center px-6 text-center overflow-y-auto py-10"
+      className="fixed inset-0 z-50 bg-[#0A0F1E] flex flex-col items-center justify-center px-6 text-center overflow-y-auto py-10 max-w-[430px] mx-auto"
     >
       {step === 1 && (
         <motion.div
