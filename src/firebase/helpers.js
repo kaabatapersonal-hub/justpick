@@ -13,3 +13,5 @@ export async function joinGroupSession() {}
 export async function submitGroupVote() {}
 
 export async function getGroupSession() {}
+
+export async function saveFeedbackToFirestore() {}
