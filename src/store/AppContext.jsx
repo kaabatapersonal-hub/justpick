@@ -62,6 +62,13 @@ function reducer(state, action) {
       return { ...state, streak: { ...state.streak, ...action.payload } };
     case 'SET_FIRST_TIME_DONE':
       return { ...state, isFirstTime: false };
+    case 'RESET_ALL':
+      return {
+        ...state,
+        stats: { totalPicks: 0, moodFrequency: {}, topSuggestions: {} },
+        history: [],
+        streak: { current: 0, longest: 0, lastPickDate: null },
+      };
     default:
       return state;
   }
@@ -115,6 +122,7 @@ export function AppProvider({ children }) {
     updateStats: (data) => dispatch({ type: 'UPDATE_STATS', payload: data }),
     updateStreak: (data) => dispatch({ type: 'UPDATE_STREAK', payload: data }),
     setFirstTimeDone: () => dispatch({ type: 'SET_FIRST_TIME_DONE' }),
+    resetAll: () => dispatch({ type: 'RESET_ALL' }),
   };
 
   return (
