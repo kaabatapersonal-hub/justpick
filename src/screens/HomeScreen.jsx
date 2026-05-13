@@ -77,6 +77,8 @@ export default function HomeScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const quickPickFired = useRef(false);
+  // Snapshot location.state at mount time — read once, not on every re-render
+  const initialState = useRef(location.state);
 
   const {
     currentUser = null,
@@ -152,13 +154,17 @@ export default function HomeScreen() {
     }, 600);
   };
 
-  // Quick pick triggered from bottom nav
+  // Quick pick triggered from bottom nav — runs once on mount only.
+  // Reads from the ref snapshot to avoid stale closure and to prevent
+  // re-triggering when React Router clears the state on back-navigation.
   useEffect(() => {
-    if (location.state?.quickPick && !quickPickFired.current) {
+    if (initialState.current?.quickPick && !quickPickFired.current) {
       quickPickFired.current = true;
+      // Clear the state from history so a back-navigation doesn't re-fire this
+      navigate('/', { replace: true, state: {} });
       triggerPick('quick');
     }
-  }, [location.state]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePickPress = () => {
     if (noExcuseMode) {
