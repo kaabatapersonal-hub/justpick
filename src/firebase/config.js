@@ -3,13 +3,12 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  // PLACEHOLDER — I will fill in real values
-  apiKey: "REPLACE_ME",
-  authDomain: "REPLACE_ME",
-  projectId: "REPLACE_ME",
-  storageBucket: "REPLACE_ME",
-  messagingSenderId: "REPLACE_ME",
-  appId: "REPLACE_ME"
+  apiKey: "AIzaSyCwrzJEZY23GvagRnaDX7YzU3f9ZsA7Lbg",
+  authDomain: "justpick-9907b.firebaseapp.com",
+  projectId: "justpick-9907b",
+  storageBucket: "justpick-9907b.firebasestorage.app",
+  messagingSenderId: "51099805431",
+  appId: "1:51099805431:web:70eb0df5808a73688995f2"
 };
 
 const app = initializeApp(firebaseConfig);
