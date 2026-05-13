@@ -56,7 +56,7 @@ function NoExcuseTimer({ onComplete }) {
         No Excuse Mode — commit in
       </p>
       <svg width="52" height="52" className="-rotate-90">
-        <circle cx="26" cy="26" r={r} fill="none" stroke="#FF8C42/20" strokeWidth="3" />
+        <circle cx="26" cy="26" r={r} fill="none" stroke="rgba(255,140,66,0.2)" strokeWidth="3" />
         <circle
           cx="26"
           cy="26"
@@ -79,22 +79,27 @@ export default function HomeScreen() {
   const quickPickFired = useRef(false);
 
   const {
-    currentUser,
-    selectedMood, setMood,
-    selectedCategory, setCategory,
-    selectedBudget, setBudget,
-    selectedTime, setTime,
-    noExcuseMode, toggleNoExcuseMode,
-    streak, updateStreak,
-    stats, updateStats,
-    history, addToHistory,
+    currentUser = null,
+    selectedMood = null, setMood,
+    selectedCategory = null, setCategory,
+    selectedBudget = null, setBudget,
+    selectedTime = null, setTime,
+    noExcuseMode = false, toggleNoExcuseMode,
+    streak = { current: 0, longest: 0, lastPickDate: null }, updateStreak,
+    stats = { totalPicks: 0, moodFrequency: {}, topSuggestions: [] }, updateStats,
+    history = [], addToHistory,
     setResult,
-    isDarkMode,
+    isDarkMode = false,
   } = useApp();
 
   const [isLoading, setIsLoading] = useState(false);
   const [noExcuseCountdown, setNoExcuseCountdown] = useState(false);
-  const dailyChallenge = getDailyChallenge();
+  const dailyChallenge = getDailyChallenge() ?? {
+    label: 'Try something new today 🎯',
+    description: 'Step outside your comfort zone.',
+    mood: 'adventurous',
+    category: 'activity',
+  };
 
   const triggerPick = async (mode = 'normal') => {
     if (isLoading) return;
@@ -111,7 +116,7 @@ export default function HomeScreen() {
         category,
         budget: selectedBudget,
         time: selectedTime,
-        history,
+        history: Array.isArray(history) ? history : [],
       });
     }
 
@@ -168,7 +173,7 @@ export default function HomeScreen() {
     triggerPick('normal');
   };
 
-  const hasStreak = streak.current > 0;
+  const hasStreak = (streak?.current ?? 0) > 0;
 
   return (
     <div className="relative min-h-full pb-8">
@@ -198,7 +203,7 @@ export default function HomeScreen() {
           <h2 className="text-xl font-bold text-[#1E293B] dark:text-[#F8FAFC]">
             {getGreeting()}
           </h2>
-          {hasStreak && (
+          {hasStreak && streak?.current != null && (
             <p className="text-sm text-[#FF8C42] font-medium mt-0.5">
               {formatStreakMessage(streak)}
             </p>
