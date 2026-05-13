@@ -63,6 +63,7 @@ function AppRoutes() {
           </AppShell>
         }
       />
+      <Route path="/swipe" element={<OnboardingScreen isSwipeMode={true} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
