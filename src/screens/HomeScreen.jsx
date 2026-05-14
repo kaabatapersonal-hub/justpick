@@ -6,6 +6,8 @@ import { getPickResult, getChaosPick, getDailyChallenge } from '../utils/pickEng
 import { calculateStreak, updateStats as computeStats, formatStreakMessage } from '../utils/statsUtils';
 import { savePickToFirestore } from '../firebase/helpers';
 import { hapticTap, hapticSuccess } from '../utils/haptics';
+import { useNotifications } from '../hooks/useNotifications';
+import NotificationPrompt from '../components/ui/NotificationPrompt';
 
 const MOODS = [
   { id: 'hungry',      label: 'Hungry',      emoji: '🍽️' },
@@ -577,6 +579,9 @@ export default function HomeScreen() {
   const [noExcuseCountdown, setNoExcuseCountdown] = useState(false);
   const [toast, setToast] = useState(null);
   const [prevAppMode, setPrevAppMode] = useState(appMode);
+  const [showNotifPrompt, setShowNotifPrompt] = useState(false);
+
+  const { hasPromptBeenShown, markPromptShown, requestPermission } = useNotifications();
 
   const dailyChallenge = getDailyChallenge() ?? {
     label: 'Try something new today 🎯',
@@ -587,6 +592,15 @@ export default function HomeScreen() {
 
   const hasStreak = (streak?.current ?? 0) >= 1;
   const greeting = getGreeting();
+
+  // Show notification prompt after first pick when user returns to home
+  useEffect(() => {
+    if (myModePrefs.pickCount === 1 && !hasPromptBeenShown()) {
+      const t = setTimeout(() => setShowNotifPrompt(true), 1500);
+      return () => clearTimeout(t);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myModePrefs.pickCount]);
 
   // Show toast on mode transition
   useEffect(() => {
@@ -748,6 +762,25 @@ export default function HomeScreen() {
 
       <AnimatePresence>
         {toast && <Toast key={toast} message={toast} onDismiss={() => setToast(null)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showNotifPrompt && (
+          <NotificationPrompt
+            onAccept={async () => {
+              markPromptShown();
+              setShowNotifPrompt(false);
+              const granted = await requestPermission();
+              if (granted) {
+                setToast('Reminders set! 🔔 We\'ll ping you at lunch and dinner');
+              }
+            }}
+            onDismiss={() => {
+              markPromptShown();
+              setShowNotifPrompt(false);
+            }}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

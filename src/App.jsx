@@ -4,6 +4,8 @@ import { useApp } from './store/AppContext';
 import { useAuth } from './hooks/useAuth';
 import AppShell from './components/layout/AppShell';
 import LoadingSpinner from './components/ui/LoadingSpinner';
+import { useAppUpdate } from './hooks/useAppUpdate';
+import UpdateBanner from './components/ui/UpdateBanner';
 
 const HomeScreen     = lazy(() => import('./screens/HomeScreen'));
 const OnboardingScreen = lazy(() => import('./screens/OnboardingScreen'));
@@ -73,9 +75,14 @@ function AppRoutes() {
 }
 
 export default function App() {
+  const { needRefresh, updateNow } = useAppUpdate();
+
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <AppRoutes />
-    </Suspense>
+    <>
+      {needRefresh && <UpdateBanner onUpdate={updateNow} />}
+      <Suspense fallback={<LoadingSpinner />}>
+        <AppRoutes />
+      </Suspense>
+    </>
   );
 }

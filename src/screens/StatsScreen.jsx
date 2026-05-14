@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../store/AppContext';
 import { getTopMood, formatStreakMessage } from '../utils/statsUtils';
 import { suggestions } from '../data/suggestions.js';
+import { useNotifications } from '../hooks/useNotifications';
 
 const MOODS_LIST = [
   { id: 'lazy', emoji: '😴', label: 'Lazy' },
@@ -50,6 +51,38 @@ function useCountUp(target, duration = 1000) {
   return count;
 }
 
+function StatsToast({ message, onDismiss }) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 2200);
+    return () => clearTimeout(t);
+  }, [onDismiss]);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 16, scale: 0.95 }}
+      className="fixed bottom-28 left-1/2 z-50 -translate-x-1/2 bg-[#1E293B] text-white text-sm font-medium px-4 py-2.5 rounded-2xl shadow-xl whitespace-nowrap"
+    >
+      {message}
+    </motion.div>
+  );
+}
+
+function ToggleSwitch({ enabled, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${enabled ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+    >
+      <motion.div
+        animate={{ x: enabled ? 24 : 0 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow"
+      />
+    </button>
+  );
+}
+
 const sectionVariants = {
   hidden: { opacity: 0, y: 16 },
   visible: (i) => ({
@@ -64,6 +97,28 @@ export default function StatsScreen() {
   const { stats, streak, history, resetAll } = useApp();
   const [showConfirm, setShowConfirm] = useState(false);
   const [barsVisible, setBarsVisible] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const { isEnabled, enable, disable } = useNotifications();
+  const [notifEnabled, setNotifEnabled] = useState(() => isEnabled());
+
+  const showToast = (msg) => setToast(msg);
+
+  const handleNotifToggle = async () => {
+    if (notifEnabled) {
+      await disable();
+      setNotifEnabled(false);
+      showToast('Reminders disabled');
+    } else {
+      const granted = await enable();
+      setNotifEnabled(!!granted);
+      if (granted) {
+        showToast('Reminders enabled 🔔');
+      } else {
+        showToast('Permission denied. Check browser settings.');
+      }
+    }
+  };
 
   const totalPicks = stats?.totalPicks ?? 0;
   const moodFrequency = stats?.moodFrequency ?? {};
@@ -307,9 +362,28 @@ export default function StatsScreen() {
           </div>
         </motion.div>
 
-        {/* Section 7: Reset */}
+        {/* Section 7: Notifications */}
         <motion.div
           custom={6}
+          initial="hidden"
+          animate="visible"
+          variants={sectionVariants}
+          className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <p className="font-bold text-sm text-[#1E293B] dark:text-[#F8FAFC]">🔔 Daily reminders</p>
+            <ToggleSwitch enabled={notifEnabled} onToggle={handleNotifToggle} />
+          </div>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+            {notifEnabled
+              ? 'You\'ll get a nudge at lunch 🍔 and dinner 🌆'
+              : 'Stay on top of your daily decisions'}
+          </p>
+        </motion.div>
+
+        {/* Section 8: Reset */}
+        <motion.div
+          custom={7}
           initial="hidden"
           animate="visible"
           variants={sectionVariants}
@@ -323,6 +397,11 @@ export default function StatsScreen() {
           </button>
         </motion.div>
       </div>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && <StatsToast key={toast} message={toast} onDismiss={() => setToast(null)} />}
+      </AnimatePresence>
 
       {/* Reset confirmation dialog */}
       <AnimatePresence>
