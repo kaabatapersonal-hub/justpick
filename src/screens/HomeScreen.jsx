@@ -210,11 +210,11 @@ export default function HomeScreen() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
         >
-          <h2 className="text-xl font-bold text-[#1E293B] dark:text-[#F8FAFC]">
+          <h2 className="text-2xl font-black text-[#1E293B] dark:text-[#F8FAFC]">
             {getGreeting()}
           </h2>
           {hasStreak && streak?.current != null && (
-            <p className="text-sm text-[#FF8C42] font-medium mt-0.5">
+            <p className="text-sm text-[#FF8C42] font-semibold mt-1">
               {formatStreakMessage(streak)}
             </p>
           )}
@@ -358,7 +358,11 @@ export default function HomeScreen() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handlePickPress}
                 disabled={isLoading}
-                className="w-full py-5 rounded-3xl bg-[#FF8C42] text-white text-xl font-bold shadow-lg active:shadow-md transition-shadow disabled:opacity-70"
+                className="w-full py-5 rounded-3xl text-white text-xl font-black disabled:opacity-70"
+                style={{
+                  background: 'linear-gradient(135deg, #FF8C42 0%, #FFD166 100%)',
+                  boxShadow: '0 8px 24px rgba(255, 140, 66, 0.45)',
+                }}
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -394,13 +398,14 @@ export default function HomeScreen() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.25 }}
-          className="bg-gradient-to-br from-[#FF8C42]/10 to-[#FFD166]/10 dark:from-[#FF8C42]/20 dark:to-[#FFD166]/20 rounded-3xl p-4 border border-[#FF8C42]/20"
+          className="rounded-3xl p-5 overflow-hidden relative"
+          style={{ background: 'linear-gradient(135deg, #FF8C42 0%, #FFD166 100%)' }}
         >
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#FF8C42] mb-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-white/70 mb-1">
             Daily Challenge
           </p>
-          <p className="font-bold text-[#1E293B] dark:text-[#F8FAFC]">{dailyChallenge.label}</p>
-          <p className="text-sm text-[#1E293B]/60 dark:text-[#F8FAFC]/60 mt-0.5">
+          <p className="font-black text-white text-lg leading-snug">{dailyChallenge.label}</p>
+          <p className="text-sm text-white/80 mt-1 leading-snug">
             {dailyChallenge.description}
           </p>
           <motion.button
@@ -411,9 +416,9 @@ export default function HomeScreen() {
               triggerPick('normal');
             }}
             disabled={isLoading}
-            className="mt-3 px-4 py-2 bg-[#FF8C42] text-white text-sm font-semibold rounded-xl disabled:opacity-60"
+            className="mt-4 px-5 py-2.5 bg-white text-[#FF8C42] text-sm font-bold rounded-2xl shadow-sm disabled:opacity-60"
           >
-            Accept Challenge
+            Accept Challenge →
           </motion.button>
         </motion.div>
 

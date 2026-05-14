@@ -311,8 +311,8 @@ export default function ResultScreen() {
         initial={{ y: 80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 240, damping: 24, delay: 0.04 }}
-        className="relative overflow-hidden rounded-b-[2.5rem] shadow-xl"
-        style={{ background: cardGradient, minHeight: '45vh' }}
+        className="relative overflow-hidden rounded-b-[2.5rem] shadow-2xl"
+        style={{ background: cardGradient, minHeight: '55vh' }}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -321,7 +321,7 @@ export default function ResultScreen() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '-65%', opacity: 0 }}
             transition={{ type: 'spring', stiffness: 310, damping: 28 }}
-            className="flex flex-col items-center justify-center px-6 py-12 min-h-[45vh] gap-4"
+            className="flex flex-col items-center justify-center px-6 py-12 min-h-[55vh] gap-4"
           >
             {/* Category icon — bounce in */}
             <motion.div
@@ -343,7 +343,7 @@ export default function ResultScreen() {
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.2 }}
-                className="text-3xl font-black text-white text-center leading-tight px-2 relative"
+                className="text-4xl font-black text-white text-center leading-tight px-2 relative"
                 style={{ zIndex: 7 }}
               >
                 {currentResult.name}

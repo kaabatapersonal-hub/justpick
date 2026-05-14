@@ -110,11 +110,21 @@ export default function StatsScreen() {
           className="rounded-3xl p-6 text-center shadow-md"
           style={{ background: 'linear-gradient(135deg, #FF8C42, #FFD166)' }}
         >
-          <p className="text-7xl font-bold text-white leading-none">{animatedCount}</p>
-          <p className="text-sm text-white/80 mt-2">decisions made 🎯</p>
-          <p className="text-xs text-white/70 mt-1">
-            You&apos;re {totalPicks} decisions smarter 💪
-          </p>
+          {totalPicks === 0 ? (
+            <>
+              <p className="text-5xl mt-1">🎯</p>
+              <p className="text-lg font-bold text-white mt-3">Make your first pick!</p>
+              <p className="text-xs text-white/80 mt-1">Your stats will appear here</p>
+            </>
+          ) : (
+            <>
+              <p className="text-7xl font-bold text-white leading-none">{animatedCount}</p>
+              <p className="text-sm text-white/80 mt-2">decisions made</p>
+              <p className="text-xs text-white/70 mt-1">
+                {totalPicks === 1 ? 'First pick made! Keep going 🎯' : `${totalPicks} decisions and counting 💪`}
+              </p>
+            </>
+          )}
         </motion.div>
 
         {/* Section 2: Streak */}

@@ -95,6 +95,7 @@ export function getTopMood(moodFrequency) {
 export function formatStreakMessage(streak) {
   const n = streak.current;
 
+  if (!n || n === 0) return 'Make your first pick to start a streak 🎯';
   if (n === 1) return 'Day 1 of not overthinking 🎯';
   if (n === 2) return "Day 2 — you're on a roll 🔥";
   if (n >= 3 && n <= 6) return `Day ${n} streak! Keep going 💪`;
