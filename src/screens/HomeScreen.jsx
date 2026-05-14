@@ -99,7 +99,7 @@ function FilterSheet({ open, onClose, budget, time, onApply }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
           />
 
           {/* Sheet */}
@@ -112,23 +112,23 @@ function FilterSheet({ open, onClose, budget, time, onApply }) {
             dragConstraints={{ top: 0 }}
             dragElastic={0.15}
             onDragEnd={(_, info) => { if (info.offset.y > 80) onClose(); }}
-            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 bg-white dark:bg-[#1E293B] rounded-t-3xl px-5 pt-4 pb-8 shadow-2xl"
+            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 bg-white dark:bg-[#1a2236] rounded-t-3xl px-5 pt-4 pb-8 shadow-2xl"
           >
             {/* Drag handle */}
-            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-600 rounded-full mx-auto mb-4" />
+            <div className="w-10 h-1 bg-gray-300 dark:bg-white/20 rounded-full mx-auto mb-4" />
 
             <div className="flex items-center justify-between mb-5">
-              <p className="font-bold text-base text-[#1E293B] dark:text-[#F8FAFC]">Refine your pick</p>
+              <p className="font-bold text-lg text-[#1E293B] dark:text-[#F8FAFC]">Refine your pick</p>
               <button
                 onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-sm font-bold"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-300 text-sm font-bold"
               >
                 ✕
               </button>
             </div>
 
             {/* Budget */}
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#1E293B]/40 dark:text-[#F8FAFC]/40 mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
               Budget
             </p>
             <div className="flex gap-2 mb-5">
@@ -136,10 +136,10 @@ function FilterSheet({ open, onClose, budget, time, onApply }) {
                 <button
                   key={b.id}
                   onClick={() => setLocalBudget(localBudget === b.id ? null : b.id)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-full border text-sm font-medium transition-all ${
                     localBudget === b.id
-                      ? 'bg-[#FF8C42] border-[#FF8C42] text-white'
-                      : 'bg-gray-50 dark:bg-[#0F172A] border-gray-200 dark:border-gray-700 text-[#1E293B] dark:text-[#F8FAFC]'
+                      ? 'bg-orange-500 border-orange-500 text-white'
+                      : 'border-gray-200 dark:border-white/20 text-[#1E293B] dark:text-[#F8FAFC]'
                   }`}
                 >
                   <span>{b.emoji}</span><span>{b.label}</span>
@@ -148,7 +148,7 @@ function FilterSheet({ open, onClose, budget, time, onApply }) {
             </div>
 
             {/* Time */}
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#1E293B]/40 dark:text-[#F8FAFC]/40 mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
               Time
             </p>
             <div className="flex gap-2 mb-7">
@@ -156,10 +156,10 @@ function FilterSheet({ open, onClose, budget, time, onApply }) {
                 <button
                   key={t.id}
                   onClick={() => setLocalTime(localTime === t.id ? null : t.id)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-full border text-sm font-medium transition-all ${
                     localTime === t.id
-                      ? 'bg-[#FF8C42] border-[#FF8C42] text-white'
-                      : 'bg-gray-50 dark:bg-[#0F172A] border-gray-200 dark:border-gray-700 text-[#1E293B] dark:text-[#F8FAFC]'
+                      ? 'bg-orange-500 border-orange-500 text-white'
+                      : 'border-gray-200 dark:border-white/20 text-[#1E293B] dark:text-[#F8FAFC]'
                   }`}
                 >
                   <span>{t.emoji}</span><span>{t.label}</span>
@@ -171,13 +171,14 @@ function FilterSheet({ open, onClose, budget, time, onApply }) {
             <div className="flex gap-3">
               <button
                 onClick={handleClear}
-                className="flex-1 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-[#1E293B]/60 dark:text-[#F8FAFC]/60"
+                className="flex-1 h-12 rounded-xl border border-gray-200 dark:border-white/20 text-sm font-semibold text-gray-400"
               >
                 Clear filters
               </button>
               <button
                 onClick={handleApply}
-                className="flex-1 py-3 rounded-2xl bg-[#FF8C42] text-white text-sm font-bold"
+                className="flex-1 h-12 rounded-xl text-white text-sm font-bold"
+                style={{ background: 'linear-gradient(135deg, #FF8C42, #FF6B1A)' }}
               >
                 Apply
               </button>
@@ -191,12 +192,20 @@ function FilterSheet({ open, onClose, budget, time, onApply }) {
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
 function ChaosButton({ onPress, disabled }) {
+  const [shaking, setShaking] = useState(false);
+  const handlePress = () => {
+    setShaking(true);
+    setTimeout(() => setShaking(false), 420);
+    onPress();
+  };
   return (
     <motion.button
-      whileTap={{ scale: 0.95 }}
-      onClick={onPress}
+      animate={shaking ? { x: [0, -6, 6, -6, 6, 0] } : {}}
+      transition={{ duration: 0.4 }}
+      onClick={handlePress}
       disabled={disabled}
-      className="w-full py-3 rounded-2xl border border-dashed border-[#FF8C42]/50 text-sm font-medium text-[#FF8C42]/80 hover:text-[#FF8C42] transition-colors disabled:opacity-50"
+      className="w-full rounded-2xl border-2 border-dashed border-orange-400 text-sm font-semibold text-orange-500 flex items-center justify-center disabled:opacity-50"
+      style={{ height: '52px' }}
     >
       🎰 Chaos Pick — surprise me
     </motion.button>
@@ -245,7 +254,12 @@ function SimpleMode({
     <div className="px-4 pt-4 space-y-5 max-w-lg mx-auto">
       {/* Greeting */}
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-        <h2 className="text-2xl font-black text-[#1E293B] dark:text-[#F8FAFC]">{greeting}</h2>
+        <h2
+          className="text-3xl font-black"
+          style={{ background: 'linear-gradient(135deg, #FF8C42, #FFD166)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+        >
+          {greeting}
+        </h2>
         {hasStreak && (
           <p className="text-sm text-[#FF8C42] font-semibold mt-1">{formatStreakMessage(streak)}</p>
         )}
@@ -289,8 +303,8 @@ function SimpleMode({
                   : 'bg-white dark:bg-[#1E293B] border-[#1E293B]/10 dark:border-[#F8FAFC]/10 text-[#1E293B] dark:text-[#F8FAFC]'
               }`}
               style={{
-                height: '56px',
-                ...(selectedCategory === cat.id ? { background: 'linear-gradient(135deg, #FF8C42, #FFD166)' } : {}),
+                height: '60px',
+                ...(selectedCategory === cat.id ? { background: 'linear-gradient(135deg, #FF8C42, #FF6B1A)' } : {}),
               }}
             >
               <span className="text-lg">{cat.emoji}</span>
@@ -326,17 +340,17 @@ function SimpleMode({
               whileTap={{ scale: 0.97 }}
               onClick={onPickPress}
               disabled={isLoading}
-              className="w-full rounded-3xl text-white text-xl font-black disabled:opacity-70 flex items-center justify-center"
+              className="w-full rounded-2xl text-white text-xl font-black disabled:opacity-70 flex items-center justify-center"
               style={{
-                height: '60px',
+                height: '64px',
                 background: 'linear-gradient(135deg, #FF8C42 0%, #FF6B1A 100%)',
-                boxShadow: '0 8px 32px rgba(255,140,66,0.35)',
+                boxShadow: '0 8px 32px rgba(255,140,66,0.4)',
               }}
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.7, ease: 'linear' }} className="inline-block">⚙️</motion.span>
-                  Picking…
+                  <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.8 }} className="inline-block">🤔</motion.span>
+                  Thinking…
                 </span>
               ) : (
                 'Just Pick for Me 🎲'
@@ -403,10 +417,21 @@ function MyMode({
   const lastTimeObj = TIMES.find((t) => t.id === myModePrefs.lastTime);
 
   return (
-    <div className="px-4 pt-4 space-y-5 max-w-lg mx-auto">
+    <div
+      className="px-4 pt-4 space-y-5 max-w-lg mx-auto relative"
+      style={{
+        backgroundImage: 'radial-gradient(circle, rgba(255,140,66,0.08) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }}
+    >
       {/* Greeting */}
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-        <h2 className="text-2xl font-black text-[#1E293B] dark:text-[#F8FAFC]">{greeting}</h2>
+        <h2
+          className="text-3xl font-black"
+          style={{ background: 'linear-gradient(135deg, #FF8C42, #FFD166)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+        >
+          {greeting}
+        </h2>
         <p className="text-xs text-[#FF8C42] font-medium mt-1">Based on your style ✦</p>
         {hasStreak && (
           <p className="text-sm text-[#FF8C42] font-semibold mt-0.5">{formatStreakMessage(streak)}</p>
@@ -416,9 +441,10 @@ function MyMode({
       {/* My Profile Card */}
       <motion.div
         initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.05 }}
-        className="bg-white dark:bg-[#1E293B] rounded-3xl p-4 shadow-sm border border-[#1E293B]/5 dark:border-[#F8FAFC]/5"
+        className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 shadow-sm border border-black/5 dark:border-white/5 border-l-4"
+        style={{ borderLeftColor: '#FF8C42' }}
       >
-        <p className="text-xs font-bold uppercase tracking-wider text-[#1E293B]/40 dark:text-[#F8FAFC]/40 mb-3">Your usual pick</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-orange-500 mb-3">Your Style</p>
 
         {[
           { label: 'Mood',     value: lastMoodObj ? `${lastMoodObj.emoji} ${lastMoodObj.label}` : 'Any mood' },

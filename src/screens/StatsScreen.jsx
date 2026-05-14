@@ -24,17 +24,25 @@ const MOOD_SUBTITLES = {
 function useCountUp(target, duration = 1000) {
   const [count, setCount] = useState(0);
   useEffect(() => {
-    if (target === 0) {
-      setCount(0);
-      return;
-    }
+    if (target === 0) { setCount(0); return; }
+    const overshoot = target + 2;
+    const totalDuration = duration + 200;
     const startTime = Date.now();
     let raf;
     const tick = () => {
       const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      setCount(Math.floor(progress * target));
-      if (progress < 1) raf = requestAnimationFrame(tick);
+      if (elapsed < duration) {
+        const progress = elapsed / duration;
+        setCount(Math.floor(progress * overshoot));
+        raf = requestAnimationFrame(tick);
+      } else if (elapsed < totalDuration) {
+        // Settle back from overshoot to target
+        const settleProgress = (elapsed - duration) / 200;
+        setCount(Math.round(overshoot - settleProgress * (overshoot - target)));
+        raf = requestAnimationFrame(tick);
+      } else {
+        setCount(target);
+      }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
@@ -202,14 +210,16 @@ export default function StatsScreen() {
                 <span className="text-sm w-28 flex-shrink-0 text-[#1E293B] dark:text-[#F8FAFC]">
                   {mood.emoji} {mood.label}
                 </span>
-                <div className="flex-1 h-2 bg-[#1E293B]/10 dark:bg-[#F8FAFC]/10 rounded-full overflow-hidden">
+                <div className="flex-1 h-3 bg-[#1E293B]/10 dark:bg-[#F8FAFC]/10 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: barsVisible ? `${pct}%` : '0%' }}
-                    transition={{ duration: 0.7, ease: 'easeOut' }}
-                    className={`h-full rounded-full ${
-                      isTop ? 'bg-[#FF8C42]' : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className="h-full rounded-full"
+                    style={isTop
+                      ? { background: 'linear-gradient(90deg, #FF8C42, #FFD166)' }
+                      : { background: 'rgba(0,0,0,0.1)' }
+                    }
                   />
                 </div>
                 <span className="text-xs text-[#1E293B]/50 dark:text-[#F8FAFC]/50 w-5 text-right flex-shrink-0">
@@ -238,9 +248,14 @@ export default function StatsScreen() {
             </button>
           </div>
           {topSuggestions.slice(0, 3).length > 0 ? (
-            topSuggestions.slice(0, 3).map((pick, idx) => (
+            topSuggestions.slice(0, 3).map((pick, idx) => {
+              const rankColor = idx === 0 ? '#FFD166' : idx === 1 ? '#C0C0C0' : '#CD7F32';
+              return (
               <div key={pick.id ?? idx} className="flex items-center gap-3">
-                <span className="w-7 h-7 flex items-center justify-center rounded-full bg-[#FF8C42] text-white text-xs font-bold flex-shrink-0">
+                <span
+                  className="w-7 h-7 flex items-center justify-center rounded-full text-white text-xs font-bold flex-shrink-0"
+                  style={{ backgroundColor: rankColor }}
+                >
                   {idx + 1}
                 </span>
                 <div className="flex-1">
@@ -253,7 +268,8 @@ export default function StatsScreen() {
                   {getPickCategory(pick) === 'food' ? '🍽️' : '🎯'}
                 </span>
               </div>
-            ))
+              );
+            })
           ) : (
             <p className="text-sm text-[#1E293B]/50 dark:text-[#F8FAFC]/50 text-center py-2">
               Keep picking to see your favorites!

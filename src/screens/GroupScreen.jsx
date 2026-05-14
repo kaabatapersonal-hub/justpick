@@ -102,9 +102,13 @@ function LandingView({ onCreate, onJoin, showHowItWorks, toggleHowItWorks }) {
       <div className="text-center space-y-2 pb-2">
         <motion.p
           initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', damping: 11, stiffness: 180 }}
-          className="text-6xl"
+          animate={{ scale: 1, opacity: 1, rotate: [0, 10, -10, 0] }}
+          transition={{
+            scale: { type: 'spring', damping: 11, stiffness: 180 },
+            opacity: { duration: 0.4 },
+            rotate: { duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 },
+          }}
+          className="text-6xl inline-block"
         >
           🎲
         </motion.p>
@@ -219,13 +223,16 @@ function CreateView({
         </p>
         <motion.button
           initial={{ scale: 0.75, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+          animate={{ scale: 1, opacity: [1, 0.7, 1] }}
+          transition={{
+            scale: { type: 'spring', damping: 12, stiffness: 200 },
+            opacity: { duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 1 },
+          }}
           whileTap={{ scale: 0.96 }}
           onClick={onCopyCode}
           className="mx-auto block px-8 py-4 border-2 border-dashed border-[#FF8C42]/45 rounded-2xl"
         >
-          <p className="text-5xl font-mono font-bold text-[#FF8C42] tracking-[0.18em]">
+          <p className="font-mono font-bold text-[#FF8C42] tracking-[0.3em] text-5xl">
             {session.code}
           </p>
         </motion.button>

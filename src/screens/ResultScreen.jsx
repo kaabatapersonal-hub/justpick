@@ -312,7 +312,12 @@ export default function ResultScreen() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 240, damping: 24, delay: 0.04 }}
         className="relative overflow-hidden rounded-b-[2.5rem] shadow-2xl"
-        style={{ background: cardGradient, minHeight: '55vh' }}
+        style={{
+          background: cardGradient,
+          minHeight: '48vh',
+          backgroundImage: `${cardGradient}, radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)`,
+          backgroundSize: 'auto, 20px 20px',
+        }}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -321,7 +326,7 @@ export default function ResultScreen() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '-65%', opacity: 0 }}
             transition={{ type: 'spring', stiffness: 310, damping: 28 }}
-            className="flex flex-col items-center justify-center px-6 py-12 min-h-[55vh] gap-4"
+            className="flex flex-col items-center justify-center px-6 py-12 min-h-[48vh] gap-4"
           >
             {/* Category icon — bounce in */}
             <motion.div
@@ -388,7 +393,8 @@ export default function ResultScreen() {
             animate={isAccepting ? { scale: [1, 1.08, 0.96, 1] } : {}}
             transition={{ duration: 0.35 }}
             onClick={handleAccept}
-            className="w-full py-4 rounded-2xl bg-white dark:bg-[#1E293B] text-[#FF8C42] font-bold text-lg shadow-sm border border-[#FF8C42]/20"
+            className="w-full py-4 rounded-2xl bg-white dark:bg-[#1E293B] font-bold text-lg shadow-sm border border-[#FF8C42]/20"
+            style={{ color: isAccepting ? '#22c55e' : '#FF8C42' }}
           >
             {isAccepting ? '✅ Done!' : '✅ This is the one'}
           </motion.button>
@@ -399,12 +405,12 @@ export default function ResultScreen() {
             animate={shakeBtn ? { x: [-7, 7, -5, 5, -3, 0] } : {}}
             transition={shakeBtn ? { duration: 0.38 } : {}}
             onClick={handleShuffle}
-            className={`w-full py-3.5 rounded-2xl border font-semibold text-sm transition-colors ${
+            className={`w-full py-3.5 rounded-2xl border-2 font-semibold text-sm transition-colors ${
               shufflesLeft <= 0
                 ? 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500'
                 : noExcusePhase === 'ready'
                 ? 'border-green-500 text-green-600 dark:text-green-400'
-                : 'border-[#FF8C42] text-[#FF8C42]'
+                : 'border-orange-400 text-orange-500'
             }`}
           >
             {getShuffleBtnContent()}
@@ -442,39 +448,44 @@ export default function ResultScreen() {
           className="space-y-2.5"
         >
           {/* Screenshot-ready share card */}
-          <div
-            className="rounded-3xl p-5 shadow-md"
-            style={{ background: cardGradient }}
-          >
-            <p className="text-white/70 text-xs font-medium mb-3 tracking-wide">
-              JustPick decided for me 🎲
-            </p>
-            <p className="text-white font-black text-2xl leading-tight mb-1">
-              {shareCardData.title}
-            </p>
-            <p className="text-white/80 text-sm mb-4 leading-snug">
-              {shareCardData.message}
-            </p>
-            <div className="flex items-end justify-between gap-2">
-              <div className="space-y-0.5">
-                {shareCardData.mood && (
-                  <p className="text-white/70 text-xs">Mood: {shareCardData.mood}</p>
-                )}
-                {shareCardData.streak > 0 && (
-                  <p className="text-white text-xs font-bold">
-                    🔥 {shareCardData.streak} day streak
-                  </p>
-                )}
-                <p className="text-white/60 text-xs">{shareCardData.date}</p>
-              </div>
-              <p className="text-white/45 text-xs shrink-0">{shareCardData.appUrl}</p>
+          <div className="rounded-2xl overflow-hidden shadow-md">
+            <div className="p-4" style={{ background: cardGradient }}>
+              <p className="text-white/70 text-xs font-medium mb-3 tracking-wide">
+                JustPick decided for me 🎲
+              </p>
+              <p className="text-white font-black text-2xl leading-tight">
+                {shareCardData.title}
+              </p>
+              <p className="text-white/80 text-sm mt-1 leading-snug">
+                {shareCardData.message}
+              </p>
+            </div>
+            <div
+              className="flex items-center justify-between px-4 py-2.5 text-xs text-white/70"
+              style={{ background: 'rgba(0,0,0,0.2)' }}
+            >
+              {shareCardData.streak > 0 ? (
+                <span>🔥 {shareCardData.streak} day streak</span>
+              ) : <span />}
+              <span>{shareCardData.mood ? shareCardData.mood : ''}</span>
+              <span>{shareCardData.date}</span>
+            </div>
+            <div
+              className="text-center py-1.5 text-xs text-white/50"
+              style={{ background: 'rgba(0,0,0,0.3)' }}
+            >
+              justpick-app.netlify.app
             </div>
           </div>
 
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleShare}
-            className="w-full py-3.5 rounded-2xl bg-[#FF8C42] text-white font-bold text-sm shadow-md"
+            className="w-full rounded-xl text-white font-bold text-sm shadow-md flex items-center justify-center"
+            style={{
+              height: '48px',
+              background: 'linear-gradient(135deg, #FF8C42, #FF6B1A)',
+            }}
           >
             📤 Share this pick
           </motion.button>
@@ -485,26 +496,25 @@ export default function ResultScreen() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0 }}
-          className="flex items-center justify-center gap-3 py-1"
+          className="space-y-2"
         >
-          <span className="text-sm text-[#1E293B]/50 dark:text-[#F8FAFC]/50">
-            Was this a good pick?
-          </span>
-          <div className="flex gap-1.5">
-            {['like', 'dislike'].map((type) => (
+          <p className="text-xs text-center text-[#1E293B]/50 dark:text-[#F8FAFC]/50">Was this a good pick?</p>
+          <div className="flex gap-2">
+            {[
+              { type: 'like', label: '👍 Good pick', activeClass: 'bg-green-500 text-white border-green-500' },
+              { type: 'dislike', label: '👎 Not great', activeClass: 'bg-red-400 text-white border-red-400' },
+            ].map(({ type, label, activeClass }) => (
               <motion.button
                 key={type}
-                whileTap={{ scale: 0.85 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleFeedback(type)}
-                className={`text-2xl p-1.5 rounded-xl transition-all ${
+                className={`flex-1 py-2.5 rounded-2xl border text-sm font-semibold transition-all ${
                   feedback === type
-                    ? type === 'like'
-                      ? 'bg-green-100 dark:bg-green-900/30 ring-2 ring-green-400/60'
-                      : 'bg-red-100 dark:bg-red-900/30 ring-2 ring-red-400/60'
-                    : 'opacity-55 hover:opacity-100'
+                    ? activeClass
+                    : 'border-gray-200 dark:border-gray-700 text-[#1E293B]/50 dark:text-[#F8FAFC]/50'
                 }`}
               >
-                {type === 'like' ? '👍' : '👎'}
+                {label}
               </motion.button>
             ))}
           </div>

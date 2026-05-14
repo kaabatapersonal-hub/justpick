@@ -193,7 +193,9 @@ export default function HistoryScreen() {
                       {/* Category circle */}
                       <div
                         className={`w-10 h-10 flex items-center justify-center rounded-full flex-shrink-0 ${
-                          item.category === 'food' ? 'bg-[#FF8C42]' : 'bg-blue-500'
+                          item.category === 'food'
+                            ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-500'
+                            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-500'
                         }`}
                       >
                         <span className="text-lg">{item.category === 'food' ? '🍔' : '🎯'}</span>
@@ -207,8 +209,13 @@ export default function HistoryScreen() {
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           {item.mood && (
                             <span
-                              className="text-xs px-2 py-0.5 rounded-full text-white font-medium"
-                              style={{ backgroundColor: MOOD_COLORS[item.mood] ?? '#888' }}
+                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                item.mood === 'lazy' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                                : item.mood === 'broke' ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400'
+                                : item.mood === 'adventurous' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                                : item.mood === 'productive' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                                : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                              }`}
                             >
                               {MOOD_EMOJIS[item.mood] ?? ''} {item.mood}
                             </span>
