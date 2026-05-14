@@ -14,6 +14,14 @@ const loadFromStorage = (key, fallback) => {
   }
 };
 
+const DEFAULT_MY_MODE_PREFS = {
+  lastMood: null,
+  lastCategory: 'food',
+  lastBudget: null,
+  lastTime: null,
+  pickCount: 0,
+};
+
 const initialState = {
   currentUser: null,
   selectedMood: null,
@@ -28,6 +36,8 @@ const initialState = {
   stats: loadFromStorage('stats', { totalPicks: 0, moodFrequency: {}, topSuggestions: {} }),
   isDarkMode: loadFromStorage('isDarkMode', getSystemDarkMode()),
   isFirstTime: loadFromStorage('isFirstTime', true),
+  appMode: loadFromStorage('appMode', 'simple'),
+  myModePrefs: loadFromStorage('myModePrefs', DEFAULT_MY_MODE_PREFS),
 };
 
 function reducer(state, action) {
@@ -62,6 +72,19 @@ function reducer(state, action) {
       return { ...state, streak: { ...state.streak, ...action.payload } };
     case 'SET_FIRST_TIME_DONE':
       return { ...state, isFirstTime: false };
+    case 'SET_APP_MODE':
+      return { ...state, appMode: action.payload };
+    case 'UPDATE_MY_MODE_PREFS': {
+      const p = action.payload;
+      const updated = {
+        lastMood: p.lastMood ?? state.myModePrefs.lastMood,
+        lastCategory: p.lastCategory ?? state.myModePrefs.lastCategory,
+        lastBudget: p.lastBudget ?? state.myModePrefs.lastBudget,
+        lastTime: p.lastTime ?? state.myModePrefs.lastTime,
+        pickCount: state.myModePrefs.pickCount + 1,
+      };
+      return { ...state, myModePrefs: updated };
+    }
     case 'RESET_ALL':
       return {
         ...state,
@@ -98,6 +121,14 @@ export function AppProvider({ children }) {
     localStorage.setItem('stats', JSON.stringify(state.stats));
   }, [state.stats]);
 
+  useEffect(() => {
+    localStorage.setItem('appMode', JSON.stringify(state.appMode));
+  }, [state.appMode]);
+
+  useEffect(() => {
+    localStorage.setItem('myModePrefs', JSON.stringify(state.myModePrefs));
+  }, [state.myModePrefs]);
+
   // Apply dark mode class to html element
   useEffect(() => {
     if (state.isDarkMode) {
@@ -122,6 +153,8 @@ export function AppProvider({ children }) {
     updateStats: (data) => dispatch({ type: 'UPDATE_STATS', payload: data }),
     updateStreak: (data) => dispatch({ type: 'UPDATE_STREAK', payload: data }),
     setFirstTimeDone: () => dispatch({ type: 'SET_FIRST_TIME_DONE' }),
+    setAppMode: (mode) => dispatch({ type: 'SET_APP_MODE', payload: mode }),
+    updateMyModePrefs: (prefs) => dispatch({ type: 'UPDATE_MY_MODE_PREFS', payload: prefs }),
     resetAll: () => dispatch({ type: 'RESET_ALL' }),
   };
 

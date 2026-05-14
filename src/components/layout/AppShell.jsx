@@ -1,13 +1,42 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../../store/AppContext';
 
 export default function AppShell({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDarkMode, toggleDarkMode } = useApp();
+  const { isDarkMode, toggleDarkMode, appMode, setAppMode, myModePrefs } = useApp();
 
-  // Scroll to top whenever the route changes
+  const pickCount = myModePrefs?.pickCount ?? 0;
+  const showMyMode = pickCount >= 3;
+
+  const [showTooltip, setShowTooltip] = useState(() => {
+    if (pickCount >= 3) return false;
+    return false;
+  });
+
+  // Show tooltip the first time My Mode becomes available
+  useEffect(() => {
+    if (pickCount >= 3) {
+      const dismissed = localStorage.getItem('myModeTooltipDismissed');
+      if (!dismissed) {
+        setShowTooltip(true);
+        const t = setTimeout(() => {
+          setShowTooltip(false);
+          localStorage.setItem('myModeTooltipDismissed', '1');
+        }, 4000);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [pickCount]);
+
+  const handleModeToggle = () => {
+    setAppMode(appMode === 'simple' ? 'mymode' : 'simple');
+    setShowTooltip(false);
+    localStorage.setItem('myModeTooltipDismissed', '1');
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
@@ -44,13 +73,57 @@ export default function AppShell({ children }) {
         >
           JustPick
         </button>
-        <button
-          onClick={toggleDarkMode}
-          className="text-xl p-2 rounded-xl hover:bg-[#FF8C42]/10 transition-colors"
-          aria-label="Toggle dark mode"
-        >
-          {isDarkMode ? '☀️' : '🌙'}
-        </button>
+
+        <div className="flex items-center gap-2">
+          {/* My Mode toggle — only shown after 3 picks */}
+          <AnimatePresence>
+            {showMyMode && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                className="relative"
+              >
+                <motion.button
+                  whileTap={{ scale: 0.93 }}
+                  onClick={handleModeToggle}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    appMode === 'mymode'
+                      ? 'bg-[#FF8C42] text-white'
+                      : 'border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400'
+                  }`}
+                  style={appMode === 'mymode' ? { boxShadow: '0 0 12px rgba(255,140,66,0.5)' } : {}}
+                >
+                  <span>✦</span>
+                  <span>My Mode</span>
+                </motion.button>
+
+                {/* First-time tooltip */}
+                <AnimatePresence>
+                  {showTooltip && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="absolute top-full right-0 mt-2 w-52 bg-[#1E293B] dark:bg-white text-white dark:text-[#1E293B] text-xs rounded-2xl px-3 py-2 shadow-xl z-50 leading-snug"
+                    >
+                      New! Tap for a personalized experience 🎯
+                      <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#1E293B] dark:bg-white rotate-45" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <button
+            onClick={toggleDarkMode}
+            className="text-xl p-2 rounded-xl hover:bg-[#FF8C42]/10 transition-colors"
+            aria-label="Toggle dark mode"
+          >
+            {isDarkMode ? '☀️' : '🌙'}
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
