@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../store/AppContext';
-import { getPickResult, getQuickPick, getChaosPick, getDailyChallenge } from '../utils/pickEngine';
+import { getPickResult, getChaosPick, getDailyChallenge } from '../utils/pickEngine';
 import { calculateStreak, updateStats as computeStats, formatStreakMessage } from '../utils/statsUtils';
 import { savePickToFirestore } from '../firebase/helpers';
 import { hapticTap, hapticSuccess } from '../utils/haptics';
@@ -76,10 +76,6 @@ function NoExcuseTimer({ onComplete }) {
 
 export default function HomeScreen() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const quickPickFired = useRef(false);
-  // Snapshot location.state at mount time — read once, not on every re-render
-  const initialState = useRef(location.state);
 
   const {
     currentUser = null,
@@ -113,7 +109,6 @@ export default function HomeScreen() {
     let pick;
 
     if (mode === 'chaos') pick = getChaosPick();
-    else if (mode === 'quick') pick = getQuickPick(category);
     else {
       pick = getPickResult({
         mood: selectedMood,
@@ -157,18 +152,6 @@ export default function HomeScreen() {
       navigate('/result');
     }, 600);
   };
-
-  // Quick pick triggered from bottom nav — runs once on mount only.
-  // Reads from the ref snapshot to avoid stale closure and to prevent
-  // re-triggering when React Router clears the state on back-navigation.
-  useEffect(() => {
-    if (initialState.current?.quickPick && !quickPickFired.current) {
-      quickPickFired.current = true;
-      // Clear the state from history so a back-navigation doesn't re-fire this
-      navigate('/', { replace: true, state: {} });
-      triggerPick('quick');
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePickPress = () => {
     if (noExcuseMode) {

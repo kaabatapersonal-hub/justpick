@@ -5,28 +5,38 @@ import { useApp } from '../../store/AppContext';
 export default function AppShell({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDarkMode, toggleDarkMode, setCategory } = useApp();
+  const { isDarkMode, toggleDarkMode } = useApp();
 
   // Scroll to top whenever the route changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  const handleCategoryNav = (category) => {
-    setCategory(category);
-    navigate('/', { state: { quickPick: true } });
-  };
-
   const navTabs = [
-    { label: 'Food',     emoji: '🍔', action: () => handleCategoryNav('food') },
-    { label: 'Activity', emoji: '🎯', action: () => handleCategoryNav('activity') },
-    { label: 'Group',    emoji: '🎲', action: () => navigate('/group') },
+    {
+      label: 'Pick',
+      emoji: '🎲',
+      action: () => navigate('/'),
+      isActive: () => location.pathname === '/' || location.pathname === '/result',
+    },
+    {
+      label: 'Group',
+      emoji: '👥',
+      action: () => navigate('/group'),
+      isActive: () => location.pathname === '/group',
+    },
+    {
+      label: 'Stats',
+      emoji: '📊',
+      action: () => navigate('/stats'),
+      isActive: () => location.pathname === '/stats' || location.pathname === '/history',
+    },
   ];
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-[#FFF9F0] dark:bg-[#0F172A] text-[#1E293B] dark:text-[#F8FAFC]">
+    <div className="flex flex-col min-h-screen bg-[#FFF9F0] dark:bg-[#0F172A] text-[#1E293B] dark:text-[#F8FAFC]">
       {/* Top Bar */}
-      <header className="flex items-center justify-between px-4 py-3 bg-[#FFF9F0]/95 dark:bg-[#0F172A]/95 backdrop-blur-sm border-b border-[#FF8C42]/15 dark:border-[#FF8C42]/10 shrink-0">
+      <header className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-[#FFF9F0]/95 dark:bg-[#0F172A]/95 backdrop-blur-sm border-b border-[#FF8C42]/15 dark:border-[#FF8C42]/10 shrink-0">
         <button
           onClick={() => navigate('/')}
           className="text-xl font-black"
@@ -34,39 +44,30 @@ export default function AppShell({ children }) {
         >
           JustPick
         </button>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => navigate('/stats')}
-            className="text-xl p-2 rounded-xl hover:bg-[#FF8C42]/10 transition-colors"
-            aria-label="Stats"
-          >
-            📊
-          </button>
-          <button
-            onClick={toggleDarkMode}
-            className="text-xl p-2 rounded-xl hover:bg-[#FF8C42]/10 transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {isDarkMode ? '☀️' : '🌙'}
-          </button>
-        </div>
+        <button
+          onClick={toggleDarkMode}
+          className="text-xl p-2 rounded-xl hover:bg-[#FF8C42]/10 transition-colors"
+          aria-label="Toggle dark mode"
+        >
+          {isDarkMode ? '☀️' : '🌙'}
+        </button>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-4">
+      <main
+        className="flex-1 overflow-y-auto"
+        style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 20px))' }}
+      >
         {children}
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Fixed Bottom Navigation */}
       <nav
-        className="shrink-0 flex items-center justify-around bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-sm border-t border-gray-100 dark:border-gray-800 px-4 pt-2"
-        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-20 flex items-center justify-around bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-sm border-t border-gray-100 dark:border-gray-800 px-4 pt-2"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 20px)' }}
       >
         {navTabs.map((tab) => {
-          const isActive = tab.label === 'Group'
-            ? location.pathname === '/group'
-            : false;
-
+          const isActive = tab.isActive();
           return (
             <button
               key={tab.label}
@@ -77,11 +78,11 @@ export default function AppShell({ children }) {
                   : 'text-gray-400 dark:text-gray-500 hover:text-[#FF8C42]'
               }`}
             >
+              {isActive && (
+                <span className="absolute top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#FF8C42]" />
+              )}
               <span className="text-2xl">{tab.emoji}</span>
               <span className="text-xs font-medium">{tab.label}</span>
-              {isActive && (
-                <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#FF8C42]" />
-              )}
             </button>
           );
         })}
