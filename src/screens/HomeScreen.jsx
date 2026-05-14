@@ -8,6 +8,7 @@ import { savePickToFirestore } from '../firebase/helpers';
 import { hapticTap, hapticSuccess } from '../utils/haptics';
 import { useNotifications } from '../hooks/useNotifications';
 import NotificationPrompt from '../components/ui/NotificationPrompt';
+import { track } from '../utils/analytics';
 
 const MOODS = [
   { id: 'hungry',      label: 'Hungry',      emoji: '🍽️' },
@@ -628,6 +629,8 @@ export default function HomeScreen() {
       lastTime: selectedTime,
     });
 
+    track('pick_made', { category: pick.category, mood: selectedMood || 'none' });
+
     savePickToFirestore(currentUser?.uid, {
       pickId: pick.id, name: pick.name, category: pick.category,
       mood: selectedMood, budget: selectedBudget,
@@ -656,6 +659,7 @@ export default function HomeScreen() {
     let pick;
     if (mode === 'chaos') {
       pick = getChaosPick();
+      track('chaos_pick');
     } else {
       pick = getPickResult({
         mood, category, budget, time,
@@ -691,6 +695,7 @@ export default function HomeScreen() {
   };
 
   const handleChallengeAccept = () => {
+    track('daily_challenge_accepted', { mood: dailyChallenge.mood, category: dailyChallenge.category });
     setMood(dailyChallenge.mood);
     setCategory(dailyChallenge.category);
     triggerPick('normal', {
@@ -771,11 +776,13 @@ export default function HomeScreen() {
               markPromptShown();
               setShowNotifPrompt(false);
               const granted = await requestPermission();
+              track(granted ? 'notification_accepted' : 'notification_denied');
               if (granted) {
                 setToast('Reminders set! 🔔 We\'ll ping you at lunch and dinner');
               }
             }}
             onDismiss={() => {
+              track('notification_dismissed');
               markPromptShown();
               setShowNotifPrompt(false);
             }}

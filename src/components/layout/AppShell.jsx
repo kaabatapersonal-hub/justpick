@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../../store/AppContext';
+import { track } from '../../utils/analytics';
 
 export default function AppShell({ children }) {
   const navigate = useNavigate();
@@ -32,7 +33,9 @@ export default function AppShell({ children }) {
   }, [pickCount]);
 
   const handleModeToggle = () => {
-    setAppMode(appMode === 'simple' ? 'mymode' : 'simple');
+    const next = appMode === 'simple' ? 'mymode' : 'simple';
+    track('mode_switched', { to: next });
+    setAppMode(next);
     setShowTooltip(false);
     localStorage.setItem('myModeTooltipDismissed', '1');
   };

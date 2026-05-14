@@ -6,6 +6,7 @@ import { getPickResult, getChaosPick } from '../utils/pickEngine';
 import { generateShareText, generateShareCardData } from '../utils/shareUtils';
 import { saveFeedbackToFirestore } from '../firebase/helpers';
 import { hapticTap, hapticSuccess } from '../utils/haptics';
+import { track } from '../utils/analytics';
 
 const SPARKLE_DIRS = [
   { x: 0, y: -58 },
@@ -186,6 +187,7 @@ export default function ResultScreen() {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleAccept = () => {
+    track('pick_accepted');
     hapticSuccess();
     setIsAccepting(true);
     setTimeout(() => {
@@ -231,6 +233,7 @@ export default function ResultScreen() {
       return;
     }
 
+    track('pick_shuffled', { shuffles_remaining: shufflesLeft - 1 });
     decrementShuffles();
     if (noExcuseMode) setNoExcusePhase('idle');
 
@@ -243,6 +246,7 @@ export default function ResultScreen() {
   };
 
   const handleChaos = () => {
+    track('chaos_pick');
     const pick = getChaosPick();
     if (!pick) return;
     setResult(pick);
@@ -251,6 +255,7 @@ export default function ResultScreen() {
   };
 
   const handleShare = async () => {
+    track('share_pick', { category: currentResult.category });
     const text = generateShareText(currentResult, selectedMood);
     if (navigator.share) {
       try {
@@ -275,6 +280,7 @@ export default function ResultScreen() {
   const handleFeedback = (type) => {
     const key = `feedback_${currentResult.id}`;
     const next = feedback === type ? null : type;
+    if (next) track('feedback_given', { type: next, pick: currentResult.name });
     if (next) {
       localStorage.setItem(key, next);
     } else {

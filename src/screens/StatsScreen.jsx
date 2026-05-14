@@ -5,6 +5,7 @@ import { useApp } from '../store/AppContext';
 import { getTopMood, formatStreakMessage } from '../utils/statsUtils';
 import { suggestions } from '../data/suggestions.js';
 import { useNotifications } from '../hooks/useNotifications';
+import { track } from '../utils/analytics';
 
 const MOODS_LIST = [
   { id: 'lazy', emoji: '😴', label: 'Lazy' },
@@ -142,6 +143,7 @@ export default function StatsScreen() {
   }, []);
 
   const handleReset = () => {
+    track('stats_reset');
     resetAll();
     setShowConfirm(false);
   };

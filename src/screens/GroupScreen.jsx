@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../store/AppContext';
 import { getPickResult } from '../utils/pickEngine';
+import { track } from '../utils/analytics';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -713,6 +714,7 @@ export default function GroupScreen() {
       result: null,
       createdAt: Date.now(),
     };
+    track('group_session_created');
     saveSession(newSession);
     setSession(newSession);
     setHostCategory('food');
@@ -756,6 +758,7 @@ export default function GroupScreen() {
   };
 
   const handleReveal = () => {
+    track('group_result_revealed', { member_count: memberCount, category: hostCategory });
     const tally = getVoteTally(simVotes);
     const winningMood = getWinningMood(tally);
     const result = getPickResult({
@@ -828,6 +831,7 @@ export default function GroupScreen() {
 
   const handleLockVote = () => {
     if (!voteMood || !joinedSession) return;
+    track('group_vote_locked', { mood: voteMood });
     const updated = {
       ...joinedSession,
       votes: { ...joinedSession.votes, [uid]: voteMood },
